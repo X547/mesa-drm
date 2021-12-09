@@ -63,6 +63,7 @@ test_decode = executable(
   files('test_decode.c'),
   include_directories : [inc_root, inc_drm],
   link_with : [libdrm, libdrm_intel],
+  dependencies : [dep_bsd],
   c_args : libdrm_c_args,
   gnu_symbol_visibility : 'hidden',
 )

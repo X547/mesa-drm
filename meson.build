@@ -205,6 +205,7 @@ else
   dep_rt = []
 endif
 dep_m = cc.find_library('m', required : false)
+dep_bsd = cc.find_library('bsd', required : false)
 
 # The header is not required on Linux, and is in fact deprecated in glibc 2.30+
 if ['linux'].contains(host_machine.system())

@@ -31,6 +31,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#define B_USE_POSITIVE_POSIX_ERRORS
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -68,11 +70,45 @@
 #include <sys/pciio.h>
 #endif
 
+#undef errno
+#define errno (-*(_errnop()))
+#define set_errno(val) *(_errnop()) = -val
+
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 
 /* Not all systems have MAP_FAILED defined */
 #ifndef MAP_FAILED
 #define MAP_FAILED ((void *)-1)
+#endif
+
+#ifdef __HAIKU__
+
+static dev_t makedev(unsigned int major, unsigned int minor)
+{
+	dev_t dev;
+	dev  = (((dev_t) (major & 0x00000fffu)) <<  8);
+	dev |= (((dev_t) (major & 0xfffff000u)) << 32);
+	dev |= (((dev_t) (minor & 0x000000ffu)) <<  0);
+	dev |= (((dev_t) (minor & 0xffffff00u)) << 12);
+	return dev;
+}
+
+static unsigned int major(dev_t dev)
+{
+	unsigned int __major;
+	__major  = ((dev & (dev_t) 0x00000000000fff00u) >>  8);
+	__major |= ((dev & (dev_t) 0xfffff00000000000u) >> 32);
+	return __major;
+}
+
+static unsigned int minor(dev_t dev)
+{
+	unsigned int __minor;
+	__minor  = ((dev & (dev_t) 0x00000000000000ffu) >>  0);
+	__minor |= ((dev & (dev_t) 0x00000ffffff00000u) >> 12);
+	return __minor;
+}
+
 #endif
 
 #include "xf86drm.h"
@@ -617,12 +653,28 @@ drm_public void drmFree(void *pt)
     free(pt);
 }
 
+#if defined(__HAIKU__)
+
+drm_public void *drmMmap(void *addr, size_t length, int prot, int flags,
+                             int fd, off_t offset)
+{
+    return mmap(addr, length, prot, flags, fd, offset);
+}
+
+drm_public int drmMunmap(void *addr, size_t length)
+{
+    return munmap(addr, length);
+}
+
+#endif
+
 /**
  * Call ioctl, restarting if it is interrupted
  */
 drm_public int
 drmIoctl(int fd, unsigned long request, void *arg)
 {
+    printf("drmIoctl(%d, %#lx)\n", fd, request);
     int ret;
 
     do {
@@ -2625,7 +2677,7 @@ drm_public int drmWaitVBlank(int fd, drmVBlankPtr vbl)
            if (cur.tv_sec > timeout.tv_sec + 1 ||
                (cur.tv_sec == timeout.tv_sec && cur.tv_nsec >=
                 timeout.tv_nsec)) {
-                   errno = EBUSY;
+                   set_errno(EBUSY);
                    ret = -1;
                    break;
            }
@@ -3292,13 +3344,13 @@ drm_public int drmGetNodeTypeFromFd(int fd)
     min = minor(sbuf.st_rdev);
 
     if (!drmNodeIsDRM(maj, min) || !S_ISCHR(sbuf.st_mode)) {
-        errno = EINVAL;
+        set_errno(EINVAL);
         return -1;
     }
 
     type = drmGetMinorType(maj, min);
     if (type == -1)
-        errno = ENODEV;
+        set_errno(ENODEV);
     return type;
 }
 

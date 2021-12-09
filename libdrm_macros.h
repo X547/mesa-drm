@@ -64,6 +64,23 @@ static inline void *drm_mmap(void *addr, size_t length, int prot, int flags,
               munmap(addr, length)
 
 
+#elif defined(__HAIKU__)
+
+extern void *drmMmap(void *addr, size_t length, int prot, int flags,
+                             int fd, off_t offset);
+extern int drmMunmap(void *addr, size_t length);
+
+static inline void *drm_mmap(void *addr, size_t length, int prot, int flags,
+                             int fd, off_t offset)
+{
+	return drmMmap(addr, length, prot, flags, fd, offset);
+}
+
+static inline int drm_munmap(void *addr, size_t length)
+{
+	return drmMunmap(addr, length);
+}
+
 #else
 
 /* assume large file support exists */

@@ -44,6 +44,36 @@
 #include <sys/sysmacros.h>
 #endif
 
+#ifdef __HAIKU__
+
+static dev_t makedev(unsigned int major, unsigned int minor)
+{
+	dev_t dev;
+	dev  = (((dev_t) (major & 0x00000fffu)) <<  8);
+	dev |= (((dev_t) (major & 0xfffff000u)) << 32);
+	dev |= (((dev_t) (minor & 0x000000ffu)) <<  0);
+	dev |= (((dev_t) (minor & 0xffffff00u)) << 12);
+	return dev;
+}
+
+static unsigned int major(dev_t dev)
+{
+	unsigned int __major;
+	__major  = ((dev & (dev_t) 0x00000000000fff00u) >>  8);
+	__major |= ((dev & (dev_t) 0xfffff00000000000u) >> 32);
+	return __major;
+}
+
+static unsigned int minor(dev_t dev)
+{
+	unsigned int __minor;
+	__minor  = ((dev & (dev_t) 0x00000000000000ffu) >>  0);
+	__minor |= ((dev & (dev_t) 0x00000ffffff00000u) >> 12);
+	return __minor;
+}
+
+#endif
+
 #include "libdrm_macros.h"
 #include "internal.h"
 
@@ -59,7 +89,7 @@ linux_name_from_sysfs(int fd, char **out)
 	char* slash_name;
 	int ret;
 
-	/* 
+	/*
 	 * Inside the sysfs directory for the device there is a symlink
 	 * to the directory representing the driver module, that path
 	 * happens to hold the name of the driver.

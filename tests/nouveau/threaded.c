@@ -36,7 +36,8 @@ static int failed;
 
 static int import_fd;
 
-#if defined(__GLIBC__) || defined(__FreeBSD__)
+/*
+#if defined(__GLIBC__) || defined(__FreeBSD__) || defined(__HAIKU__)
 int ioctl(int fd, unsigned long request, ...)
 #else
 int ioctl(int fd, int request, ...)
@@ -56,6 +57,7 @@ int ioctl(int fd, int request, ...)
 
 	return ret;
 }
+*/
 
 static void *
 openclose(void *dev)

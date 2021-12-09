@@ -104,7 +104,7 @@ vmwgfx_bo_create(struct kms_driver *kms,
 			ret = drmCommandWriteRead(bo->base.kms->fd,
 						  DRM_VMW_ALLOC_DMABUF,
 						  &arg, sizeof(arg));
-		} while (ret == -ERESTART);
+		} while (ret == -EINTR);
 
 		if (ret)
 			goto err_free;
