@@ -1786,6 +1786,11 @@ int amdgpu_cs_syncobj_transfer(amdgpu_device_handle dev,
 			       uint64_t src_point,
 			       uint32_t flags);
 
+int amdgpu_cs_syncobj_accumulate(amdgpu_device_handle dev,
+			       uint32_t syncobj1,
+			       uint32_t syncobj2,
+			       uint64_t point);
+
 /**
  * Export an amdgpu fence as a handle (syncobj or fd).
  *

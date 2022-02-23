@@ -947,6 +947,9 @@ extern int drmSyncobjTransfer(int fd,
 			      uint32_t dst_handle, uint64_t dst_point,
 			      uint32_t src_handle, uint64_t src_point,
 			      uint32_t flags);
+extern int drmSyncobjAccumulate(int fd,
+			      uint32_t syncobj1, uint32_t syncobj2,
+			      uint64_t point);
 
 extern char *
 drmGetFormatModifierVendor(uint64_t modifier);

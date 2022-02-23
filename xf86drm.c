@@ -5095,6 +5095,24 @@ drm_public int drmSyncobjTransfer(int fd,
     return ret;
 }
 
+
+drm_public int drmSyncobjAccumulate(int fd,
+			      uint32_t syncobj1, uint32_t syncobj2,
+			      uint64_t point)
+{
+    struct drm_syncobj_accumulate args;
+    int ret;
+
+    memclear(args);
+    args.syncobj1 = syncobj1;
+    args.syncobj2 = syncobj2;
+    args.point = point;
+
+    ret = drmIoctl(fd, DRM_IOCTL_SYNCOBJ_ACCUMULATE, &args);
+
+    return ret;
+}
+
 static char *
 drmGetFormatModifierFromSimpleTokens(uint64_t modifier)
 {

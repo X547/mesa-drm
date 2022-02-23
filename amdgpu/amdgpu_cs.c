@@ -874,6 +874,41 @@ drm_public int amdgpu_cs_syncobj_transfer(amdgpu_device_handle dev,
 				  flags);
 }
 
+drm_public int amdgpu_cs_syncobj_accumulate(amdgpu_device_handle dev, uint32_t syncobj1, uint32_t syncobj2, uint64_t point)
+{
+	if (NULL == dev)
+		return -EINVAL;
+
+	return drmSyncobjAccumulate(dev->fd,
+				  syncobj1, syncobj2,
+				  point);
+#if 0
+	int ret;
+	
+	int fd;
+	ret = amdgpu_cs_syncobj_export_sync_file(ctx->ws->dev, syncobj1, &fd);
+	if (ret < 0)
+		return ret;
+
+	int fd2;
+	ret = amdgpu_cs_syncobj_export_sync_file(ctx->ws->dev, syncobj2, &fd2);
+	if (ret < 0) {
+		close(fd);
+		return ret;
+	}
+
+	sync_accumulate("amdgpu", &fd, fd2);
+	close(fd2);
+
+	ret = amdgpu_cs_syncobj_import_sync_file(ctx->ws->dev, syncobj1, fd);
+	close(fd);
+	if (ret < 0)
+		return ret;
+#endif
+
+	return 0;
+}
+
 drm_public int amdgpu_cs_submit_raw(amdgpu_device_handle dev,
 				    amdgpu_context_handle context,
 				    amdgpu_bo_list_handle bo_list_handle,

@@ -878,6 +878,12 @@ struct drm_syncobj_transfer {
 	__u32 pad;
 };
 
+struct drm_syncobj_accumulate {
+	__u32 syncobj1;
+	__u32 syncobj2;
+	__u64 point;
+};
+
 #define DRM_SYNCOBJ_WAIT_FLAGS_WAIT_ALL (1 << 0)
 #define DRM_SYNCOBJ_WAIT_FLAGS_WAIT_FOR_SUBMIT (1 << 1)
 #define DRM_SYNCOBJ_WAIT_FLAGS_WAIT_AVAILABLE (1 << 2) /* wait for time point to become available */
@@ -1081,6 +1087,8 @@ extern "C" {
 #define DRM_IOCTL_SYNCOBJ_TIMELINE_SIGNAL	DRM_IOWR(0xCD, struct drm_syncobj_timeline_array)
 
 #define DRM_IOCTL_MODE_GETFB2		DRM_IOWR(0xCE, struct drm_mode_fb_cmd2)
+
+#define DRM_IOCTL_SYNCOBJ_ACCUMULATE	DRM_IOWR(0xCF, struct drm_syncobj_accumulate)
 
 /*
  * Device specific ioctls should only be in their respective headers
