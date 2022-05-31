@@ -33,6 +33,8 @@
 #include <sys/mman.h>
 #include <sys/time.h>
 
+#include <inttypes.h>
+
 #include "libdrm_macros.h"
 #include "xf86drm.h"
 #include "amdgpu_drm.h"
@@ -264,6 +266,8 @@ drm_public int amdgpu_bo_import(amdgpu_device_handle dev,
 
 	/* Convert a DMA buf handle to a KMS handle now. */
 	if (type == amdgpu_bo_handle_type_dma_buf_fd) {
+		struct drm_amdgpu_gem_op gem_op = {};
+		struct drm_amdgpu_gem_create_in bo_info = {};
 		off_t size;
 
 		/* Get a KMS handle. */
@@ -272,14 +276,24 @@ drm_public int amdgpu_bo_import(amdgpu_device_handle dev,
 			goto unlock;
 
 		/* Query the buffer size. */
+#if 0
 		size = lseek(shared_handle, 0, SEEK_END);
 		if (size == (off_t)-1) {
 			r = -errno;
 			goto free_bo_handle;
 		}
 		lseek(shared_handle, 0, SEEK_SET);
-
 		dma_buf_size = size;
+#else
+		gem_op.handle = handle;
+		gem_op.op = AMDGPU_GEM_OP_GET_GEM_CREATE_INFO;
+		gem_op.value = (uintptr_t)&bo_info;
+		r = drmCommandWriteRead(dev->fd, DRM_AMDGPU_GEM_OP,
+					&gem_op, sizeof(gem_op));
+		if (r)
+			return r;
+		dma_buf_size = bo_info.bo_size;
+#endif
 		shared_handle = handle;
 	}
 
